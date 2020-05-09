@@ -21,7 +21,7 @@
 static int rs_initialized;
 static pid_t rs_stir_pid;
 static chacha_ctx rs;
-static unsigned char rs_buf[(16 * 64)];
+static unsigned char rs_buf[RSBUFSZ];
 static size_t rs_have;
 static size_t rs_count;
 
@@ -114,7 +114,7 @@ void arc4random(u_int32_t *val)
 {
     _rs_stir_if_needed(sizeof(*val));
     if (rs_have < sizeof(*val))
-        _rs_rekey(NULL, 0);
+        _rs_rekey(NULL, 0); 
     memcpy(val, rs_buf + RSBUFSZ - rs_have, sizeof(*val));
     memset(rs_buf + RSBUFSZ - rs_have, 0, sizeof(*val));
     rs_have -= sizeof(*val);
