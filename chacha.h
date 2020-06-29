@@ -24,7 +24,8 @@ struct chacha_ctx {
 void chacha_keysetup(struct chacha_ctx *x, const u_char *k, u_int kbits);
 void chacha_ivsetup(struct chacha_ctx *x, const u_char *iv, const u_char *ctr);
 void chacha_encrypt_bytes(struct chacha_ctx *x, const u_char *m, u_char *c, u_int bytes);
-   
+void arc4random(u_int32_t *val);
+
 typedef unsigned char u8;
 typedef unsigned int u32;
 

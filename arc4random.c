@@ -8,12 +8,11 @@
 #include <openssl/err.h>
 #include <stdio.h>
 
-#define KEYSZ	32
-#define IVSZ	8
-#define BLOCKSZ	64
-#define RSBUFSZ	(16*BLOCKSZ)
-#define   MIN(a,b) (((a) < (b)) ? (a) : (b))
-
+#define KEYSZ 32
+#define IVSZ 8
+#define BLOCKSZ 64
+#define RSBUFSZ (16 * BLOCKSZ)
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 #define KEYSTREAM_ONLY
 #include "chacha.h"
@@ -32,7 +31,7 @@ void _rs_init(unsigned char *buf, size_t n)
     if (n < KEYSZ + IVSZ)
         return;
     chacha_keysetup(&rs, buf, KEYSZ * 8);
-	chacha_ivsetup(&rs, buf + KEYSZ, 0);
+    chacha_ivsetup(&rs, buf + KEYSZ, 0);
 }
 
 void arc4random_stir(void)
@@ -85,9 +84,9 @@ void _rs_rekey(unsigned char *dat, size_t datlen)
             rs_buf[i] ^= dat[i];
     }
     /* immediately reinit for backtracking resistance */
-	_rs_init(rs_buf, KEYSZ + IVSZ);
-	memset(rs_buf, 0, KEYSZ + IVSZ);
-	rs_have = RSBUFSZ - KEYSZ - IVSZ;
+    _rs_init(rs_buf, KEYSZ + IVSZ);
+    memset(rs_buf, 0, KEYSZ + IVSZ);
+    rs_have = RSBUFSZ - KEYSZ - IVSZ;
 }
 
 void arc4random_buf(void *_buf, size_t n)
@@ -96,25 +95,27 @@ void arc4random_buf(void *_buf, size_t n)
     size_t m;
 
     _rs_stir_if_needed(n);
-    while (n > 0) {
-		if (rs_have > 0) {
-			m = MIN(n, rs_have);
-			memcpy(buf, rs_buf + RSBUFSZ - rs_have, m);
-			memset(rs_buf + RSBUFSZ - rs_have, 0, m);
-			buf += m;
-			n -= m;
-			rs_have -= m;
-		}
-		if (rs_have == 0)
-			_rs_rekey(NULL, 0);
-	}
+    while (n > 0)
+    {
+        if (rs_have > 0)
+        {
+            m = MIN(n, rs_have);
+            memcpy(buf, rs_buf + RSBUFSZ - rs_have, m);
+            memset(rs_buf + RSBUFSZ - rs_have, 0, m);
+            buf += m;
+            n -= m;
+            rs_have -= m;
+        }
+        if (rs_have == 0)
+            _rs_rekey(NULL, 0);
+    }
 }
 
 void arc4random(u_int32_t *val)
 {
     _rs_stir_if_needed(sizeof(*val));
     if (rs_have < sizeof(*val))
-        _rs_rekey(NULL, 0); 
+        _rs_rekey(NULL, 0);
     memcpy(val, rs_buf + RSBUFSZ - rs_have, sizeof(*val));
     memset(rs_buf + RSBUFSZ - rs_have, 0, sizeof(*val));
     rs_have -= sizeof(*val);
@@ -159,18 +160,4 @@ u_int32_t arc4random_uniform(u_int32_t upper_bound)
     }
 
     return val % upper_bound;
-}
-
-int main(int argc, char **argv)
-{
-    const int iter = 10;
-    int i;
-    u_int32_t val;
-
-    for (i = 0; i < iter; i++)
-    {
-        arc4random(&val);
-        printf("%u\n", val);
-    }
-    exit(0);
 }
